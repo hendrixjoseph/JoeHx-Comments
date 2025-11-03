@@ -38,10 +38,10 @@ export function transformData(comment: BlogComment): TransformedData {
 
     return {
         pr: {
-            branch: "",
+            branch: `comment-${crypto.randomUUID()}`,
             path: `_data/comments/${comment.options.slug}/entry${now.getTime()}.yml`,
             title: `Add comment from ${comment.fields.name} at ${comment.fields.url}.`,
-            body: ""
+            body: `Add comment from ${comment.fields.name} at ${comment.fields.url}.`
         },
         comment: {
             message: comment.fields.message,

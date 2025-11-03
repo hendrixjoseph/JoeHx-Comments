@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/rest";
 import dotenv from "dotenv";
 import { TransformedData } from "./transform.js";
+import { stringify } from 'yaml'
 dotenv.config();
 
 const octokit = new Octokit({
@@ -15,25 +16,27 @@ export async function createPullRequest(data: TransformedData) {
   const baseBranch = repoData.default_branch;
 
   const { data: refData } = await octokit.git.getRef({
-    owner,
-    repo,
+    owner: owner,
+    repo: repo,
     ref: `heads/${baseBranch}`,
   });
   const baseSha = refData.object.sha;
 
   await octokit.git.createRef({
-    owner,
-    repo,
+    owner: owner,
+    repo: repo,
     ref: `refs/heads/${data.pr.branch}`,
     sha: baseSha,
   });
 
+  const yaml = stringify(data.comment);
+
   await octokit.repos.createOrUpdateFileContents({
-    owner,
-    repo,
+    owner: owner,
+    repo: repo,
     path: data.pr.path,
     message: data.pr.title,
-    content: Buffer.from(data.pr.body).toString("base64"),
+    content: Buffer.from(yaml).toString("base64"),
     branch: data.pr.branch,
   });
 
