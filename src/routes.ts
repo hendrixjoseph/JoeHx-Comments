@@ -1,16 +1,16 @@
 import express, { Request, Response } from "express";
 import multer from "multer";
-import { transformData, TransformedData } from "./transform.js";
+import { BlogComment, transformData, TransformedData } from "./transform.js";
 import { createPullRequest } from "./github.js";
 
 const router = express.Router();
 const upload = multer();
 
-router.post("/submit", upload.none(), async (req: Request, res: Response) => {
+router.post("/comments", upload.none(), async (req: Request<{}, any, BlogComment>, res: Response) => {
   try {
     const formData = req.body;
 
-    const transformed: TransformedData = transformData(formData);
+    const transformed = transformData(formData);
 
     const prUrl = await createPullRequest(transformed);
 

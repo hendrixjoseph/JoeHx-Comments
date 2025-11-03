@@ -1,19 +1,54 @@
-export interface TransformedData {
-  branchName: string;
-  commitMessage: string;
-  filePath: string;
-  content: string;
-  title: string;
-  body: string;
+import crypto from "crypto";
+
+export interface BlogComment {
+  options: {
+    origin: string;
+    redirect: string;
+    slug: string;
+  };
+  fields: {
+    name: string;
+    email: string;
+    url?: string;
+    message: string;
+    codeword?: string;
+  };
 }
 
-export function transformData(formData: Record<string, any>): TransformedData {
-  return {
-    branchName: `update-${Date.now()}`,
-    commitMessage: "Auto PR from form submission",
-    filePath: "data/submission.json",
-    content: JSON.stringify(formData, null, 2),
-    title: "New Form Submission PR",
-    body: "This PR was automatically created from form input.",
-  };
+export interface TransformedData {
+  pr: {
+    branch: string,
+    path: string,
+    title: string,
+    body: string
+  }, 
+  comment: {
+    message: string,
+    name: string,
+    email: string,
+    url?: string,
+    date: number
+  }
+}
+
+const hash = (string: string) => crypto.createHash("md5").update(string.trim().toLowerCase()).digest("hex");
+
+export function transformData(comment: BlogComment): TransformedData {
+    const now = new Date();
+
+    return {
+        pr: {
+            branch: "",
+            path: `_data/comments/${comment.options.slug}/entry${now.getTime()}.yml`,
+            title: `Add comment from ${comment.fields.name} at ${comment.fields.url}.`,
+            body: ""
+        },
+        comment: {
+            message: comment.fields.message,
+            name: comment.fields.name,
+            email: hash(comment.fields.email),
+            url: comment.fields.url,
+            date: now.getTime()
+        }
+    }
 }

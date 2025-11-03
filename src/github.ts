@@ -1,61 +1,52 @@
-import axios from "axios";
+import { Octokit } from "@octokit/rest";
 import dotenv from "dotenv";
 import { TransformedData } from "./transform.js";
-
 dotenv.config();
 
-const GITHUB_API = "https://api.github.com";
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
 
-export async function createPullRequest(data: TransformedData): Promise<string> {
-  const { branchName, commitMessage, filePath, content, title, body } = data;
-  const token = process.env.GITHUB_TOKEN!;
-  const owner = process.env.GITHUB_OWNER!;
-  const repo = process.env.GITHUB_REPO!;
+const owner = process.env.GITHUB_OWNER!;
+const repo = process.env.GITHUB_REPO!;
 
-  const headers = {
-    Authorization: `token ${token}`,
-    Accept: "application/vnd.github.v3+json",
-  };
+export async function createPullRequest(data: TransformedData) {
+  const { data: repoData } = await octokit.repos.get({ owner, repo });
+  const baseBranch = repoData.default_branch;
 
-  const repoData = await axios.get(`${GITHUB_API}/repos/${owner}/${repo}`, {
-    headers,
+  const { data: refData } = await octokit.git.getRef({
+    owner,
+    repo,
+    ref: `heads/${baseBranch}`,
   });
-  const baseBranch = repoData.data.default_branch;
+  const baseSha = refData.object.sha;
 
-  const baseRef = await axios.get(
-    `${GITHUB_API}/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`,
-    { headers }
-  );
-  const baseSha = baseRef.data.object.sha;
+  await octokit.git.createRef({
+    owner,
+    repo,
+    ref: `refs/heads/${data.pr.branch}`,
+    sha: baseSha,
+  });
 
-  await axios.post(
-    `${GITHUB_API}/repos/${owner}/${repo}/git/refs`,
-    { ref: `refs/heads/${branchName}`, sha: baseSha },
-    { headers }
-  );
+  await octokit.repos.createOrUpdateFileContents({
+    owner,
+    repo,
+    path: data.pr.path,
+    message: data.pr.title,
+    content: Buffer.from(data.pr.body).toString("base64"),
+    branch: data.pr.branch,
+  });
 
-  const encodedContent = Buffer.from(content).toString("base64");
+  const { data: pr } = await octokit.pulls.create({
+    owner: owner,
+    repo: repo,
+    title: data.pr.title,
+    head: data.pr.branch,
+    base: baseBranch,
+    body: data.pr.body,
+  });
 
-  await axios.put(
-    `${GITHUB_API}/repos/${owner}/${repo}/contents/${filePath}`,
-    {
-      message: commitMessage,
-      content: encodedContent,
-      branch: branchName,
-    },
-    { headers }
-  );
-
-  const pr = await axios.post(
-    `${GITHUB_API}/repos/${owner}/${repo}/pulls`,
-    {
-      title,
-      body,
-      head: branchName,
-      base: baseBranch,
-    },
-    { headers }
-  );
-
-  return pr.data.html_url;
+  console.log(`✅ Created PR: ${pr.html_url}`);
+  return pr.html_url;
 }
+
