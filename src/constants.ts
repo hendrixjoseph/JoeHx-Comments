@@ -1,0 +1,1 @@
+export const BANNED_DOMAINS = ["24crypto.de", "cutt.us", "bit.ly", "cryptoncoins.de", "www.lottovip.com", "tinyurl.com", "mtpolice.kr", "erectiledysfunctionpillscvs.com"] as const

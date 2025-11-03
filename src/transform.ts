@@ -11,7 +11,6 @@ export interface BlogComment {
     email: string;
     url?: string;
     message: string;
-    codeword?: string;
   };
 }
 
