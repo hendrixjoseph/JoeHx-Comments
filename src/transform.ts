@@ -10,6 +10,7 @@ export interface BlogComment {
     name: string;
     email: string;
     url?: string;
+    replyto?: string;
     message: string;
   };
 }
@@ -26,6 +27,7 @@ export interface TransformedData {
     name: string,
     email: string,
     url?: string,
+    replyto?: string,
     date: number
   }
 }
@@ -35,10 +37,12 @@ const hash = (string: string) => crypto.createHash("md5").update(string.trim().t
 export function transformData(comment: BlogComment): TransformedData {
     const now = new Date();
 
+    const replyToFilePrefix = comment.fields.replyto || '';
+
     return {
         pr: {
             branch: `comment-${crypto.randomUUID()}`,
-            path: `_data/comments/${comment.options.slug}/entry${now.getTime()}.yml`,
+            path: `_data/comments/${comment.options.slug}/${replyToFilePrefix}entry${now.getTime()}.yml`,
             title: `Add comment from ${comment.fields.name} at ${comment.fields.url}.`,
             body: `Add comment from ${comment.fields.name} at ${comment.fields.url}.`
         },
@@ -47,6 +51,7 @@ export function transformData(comment: BlogComment): TransformedData {
             name: comment.fields.name,
             email: hash(comment.fields.email),
             url: comment.fields.url,
+            replyto: comment.fields.replyto,
             date: now.getTime()
         }
     }
