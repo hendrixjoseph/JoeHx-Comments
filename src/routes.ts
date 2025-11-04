@@ -17,7 +17,7 @@ router.post("/comments", upload.none(), async (req: Request<{}, any, BlogComment
 
     const prUrl = await createPullRequest(transformed);
 
-    res.status(200).json({ message: "Pull Request created", prUrl });
+    res.status(201).json({ message: "Pull Request created", prUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -25,6 +25,10 @@ router.post("/comments", upload.none(), async (req: Request<{}, any, BlogComment
       details: JSON.stringify(err),
     });
   }
+});
+
+router.get('/health', async (req: Request, res: Response) => {
+  res.status(200).json({health: 'healthy'});
 });
 
 export const routes = router;
