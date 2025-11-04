@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import multer from "multer";
-import { BlogComment, transformData, TransformedData } from "./transform.js";
 import { createPullRequest } from "./github.js";
+import { BlogComment, transformData } from "./transform.js";
 import { validateComment } from "./validation.js";
 
 const router = express.Router();
@@ -19,11 +19,17 @@ router.post("/comments", upload.none(), async (req: Request<{}, any, BlogComment
 
     res.status(201).json({ message: "Pull Request created", prUrl });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      error: "Internal Server Error",
-      details: JSON.stringify(err),
-    });
+    if (typeof err === "string") {
+      res.status(400).json({
+        error: "Validation Error",
+        details: err
+      });
+    } else {
+      res.status(500).json({
+        error: "Internal Server Error",
+        details: JSON.stringify(err),
+      });
+    }
   }
 });
 
