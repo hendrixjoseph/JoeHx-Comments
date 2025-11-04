@@ -2,6 +2,7 @@ import { Octokit } from "@octokit/rest";
 import dotenv from "dotenv";
 import { TransformedData } from "./transform.js";
 import { stringify } from 'yaml'
+
 dotenv.config();
 
 const octokit = new Octokit({
@@ -20,6 +21,7 @@ export async function createPullRequest(data: TransformedData) {
     repo: repo,
     ref: `heads/${baseBranch}`,
   });
+
   const baseSha = refData.object.sha;
 
   await octokit.git.createRef({
@@ -49,7 +51,6 @@ export async function createPullRequest(data: TransformedData) {
     body: data.pr.body,
   });
 
-  console.log(`✅ Created PR: ${pr.html_url}`);
   return pr.html_url;
 }
 

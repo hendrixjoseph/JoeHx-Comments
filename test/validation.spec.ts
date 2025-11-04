@@ -1,23 +1,5 @@
-import { BlogComment } from "../src/transform.js";
 import { validateComment } from "../src/validation.js";
-
-const getCompleteComment = () => {
-    const comment: BlogComment = {
-        options: {
-            origin: "https://www.joehxblog.com/blog-post/",
-            redirect: "https://www.joehxblog.com/blog-post/",
-            slug: "blog-post"
-        },
-        fields: {
-            name: "JoeHx",
-            email: "joehx@example.com",
-            url: "https://www.joehxblog.com/",
-            message: "this is my comment"
-        }
-    };
-
-    return comment;
-}
+import { getCompleteComment } from "./test-data.js";
 
 describe('test validations!', () => {
     it('test missing fields', async () => {
