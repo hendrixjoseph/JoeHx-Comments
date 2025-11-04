@@ -12,8 +12,9 @@ export async function validateComment(comment: RecursivePartial<BlogComment>) {
         requireHttps(c),
         requireEnglish(c),
         validateUrl(c),
-        validateEmail(c)
-    ]);
+        validateEmail(c),
+        preventTooManyLinks(c)
+    ]).then(() => Promise.resolve());
 }
 
 function requireHttps(comment: BlogComment) {
